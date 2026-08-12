@@ -35,6 +35,8 @@ cat /sys/firmware/efi/fw_platform_size
     - [ ] 挂载到 `/mnt` 以及挂载参数
 
 ```sh
+mkfs.xfs /dev/vda2
+
 mount /dev/vda2 /mnt
 
 # https://wiki.archlinux.org/title/Swap#Swap_file
@@ -48,7 +50,7 @@ swapon /mnt/swapfile
 
 ```sh
 reflector --save /etc/pacman.d/mirrorlist --verbose -f 4 -c HK
-pacstrap -K /mnt base linux-zen nano dropbear grub
+pacstrap -K /mnt base linux-zen msedit openssh grub
 ```
 
 - [ ] 配置系统
@@ -66,28 +68,25 @@ arch-chroot /mnt
 ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 hwclock --systohc
 
-nano /etc/locale.gen
+msedit /etc/locale.gen
 # en_US.UTF-8 UTF-8
 locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
-nano /etc/hostname
-nano /etc/systemd/network/99-def.network
+msedit /etc/hostname
+msedit /etc/systemd/network/99-def.network
 mkdir -p /etc/systemd/resolved.conf.d
-nano /etc/systemd/resolved.conf.d/cloudflare.conf
+msedit /etc/systemd/resolved.conf.d/cloudflare.conf
 
-passwd
 mkdir -p /root/.ssh
-nano /root/.ssh/authorized_keys
-mkdir -p /etc/systemd/system/dropbear.service.d
-nano /etc/systemd/system/dropbear.service.d/ssh.conf
-chmod 644 /etc/systemd/system/dropbear.service.d/ssh.conf
+msedit /root/.ssh/authorized_keys
+msedit /etc/ssh/sshd_config.d/20-security.conf
 
 # https://wiki.archlinux.org/title/GRUB#GUID_Partition_Table_(GPT)_specific_instructions
 grub-install --target=i386-pc /dev/vda
 grub-mkconfig -o /boot/grub/grub.cfg
 
-systemctl enable systemd-timesyncd systemd-networkd systemd-resolved dropbear
+systemctl enable systemd-timesyncd systemd-networkd systemd-resolved sshd
 ```
 
 ```conf
@@ -123,11 +122,12 @@ DNSOverTLS=yes
 ```
 
 ```conf
-# https://wiki.archlinux.org/title/Systemd#Drop-in_files
-# /etc/systemd/system/dropbear.service.d/ssh.conf
-[Service]
-ExecStart=
-ExecStart=/usr/bin/dropbear -F -P /run/dropbear.pid -R -s -p 21309
+# https://wiki.archlinux.org/title/OpenSSH#Configuration_2
+# https://wiki.archlinux.org/title/OpenSSH#Force_public_key_authentication
+# /etc/ssh/sshd_config.d/20-security.conf
+Port 39901
+PasswordAuthentication no
+AuthenticationMethods publickey
 ```
 
 ## 3. 系统安装后
