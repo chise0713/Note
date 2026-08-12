@@ -143,8 +143,9 @@ ExecStart=/usr/bin/dropbear -F -P /run/dropbear.pid -R -s -p 21309
 # https://wiki.archlinux.org/title/Systemd-resolved#DNS
 ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 resolvectl status
-resolvectl query badsig.go.dnscheck.tools
-resolvectl query go.dnscheck.tools
+resolvectl query brokendnssec.net
+resolvectl query baidu.com
+resolvectl query nekos.chat
 ```
 
 - [ ] 设置 sysctl
